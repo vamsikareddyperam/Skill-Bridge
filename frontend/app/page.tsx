@@ -100,6 +100,13 @@ export default function Home() {
 
   const [currentStep, setCurrentStep] = useState(0);
 
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, [currentStep]);
+
   const [skills, setSkills] = useState("");
   const [softSkills, setSoftSkills] = useState("");
   const [interests, setInterests] = useState("");
@@ -131,10 +138,7 @@ export default function Home() {
   >({});
 
   const API_BASE =
-    typeof window !== "undefined"
-      ? `http://${window.location.hostname}:8000`
-      : "http://localhost:8000";
-
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
   const joinList = (value: unknown) =>
     Array.isArray(value) ? value.filter(Boolean).join(", ") : "";
 
