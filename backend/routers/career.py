@@ -150,8 +150,22 @@ def skill_gap(
         if skill not in student_soft_skills
     ]
 
+    existing_technical_skills = [
+        skill
+        for skill in selected_career["technical_skills"]
+        if skill.lower().strip() in student_skills
+    ]
+
+    existing_soft_skills = [
+        skill
+        for skill in selected_career["soft_skills"]
+        if skill.lower().strip() in student_soft_skills
+    ]
+
     return {
         "career": selected_career["title"],
+        "existing_technical_skills": existing_technical_skills,
+        "existing_soft_skills": existing_soft_skills,
         "missing_technical_skills": missing_technical_skills,
         "missing_soft_skills": missing_soft_skills
     }
@@ -399,9 +413,106 @@ Explain in simple language:
 Keep the answer encouraging, practical, and concise.
 """
 
+    # Try Gemini first
     explanation = generate_ai_response(prompt)
+
+    # -------------------------------------------------
+    # Fallback guidance if Gemini is temporarily down
+    # -------------------------------------------------
+
+    if not explanation:
+
+        technical_skills = selected_career["technical_skills"]
+        soft_skills = selected_career["soft_skills"]
+
+        student_skills = {
+            skill.lower().strip()
+            for skill in profile.skills
+        }
+
+        student_soft_skills = {
+            skill.lower().strip()
+            for skill in profile.soft_skills
+        }
+
+        existing_technical = [
+            skill
+            for skill in technical_skills
+            if skill.lower().strip() in student_skills
+        ]
+
+        missing_technical = [
+            skill
+            for skill in technical_skills
+            if skill.lower().strip() not in student_skills
+        ]
+
+        existing_soft = [
+            skill
+            for skill in soft_skills
+            if skill.lower().strip() in student_soft_skills
+        ]
+
+        missing_soft = [
+            skill
+            for skill in soft_skills
+            if skill.lower().strip() not in student_soft_skills
+        ]
+
+        existing_skills_text = (
+            ", ".join(
+                existing_technical + existing_soft
+            )
+            if existing_technical or existing_soft
+            else "You are starting with a clean learning path."
+        )
+
+        missing_technical_text = (
+            ", ".join(missing_technical)
+            if missing_technical
+            else "You already have the main technical skills required for this career."
+        )
+
+        missing_soft_text = (
+            ", ".join(missing_soft)
+            if missing_soft
+            else "You already have the main soft skills required for this career."
+        )
+
+        explanation = f"""
+Your target career is {selected_career["title"]}.
+
+Why it matches you:
+
+Your current interests and skills provide a useful starting point
+for this career. The skills you already have can help you begin
+learning the requirements of this role.
+
+Skills you already have:
+
+{existing_skills_text}
+
+Technical skills to develop:
+
+{missing_technical_text}
+
+Soft skills to develop:
+
+{missing_soft_text}
+
+Recommended approach:
+
+Start with the first skill in your roadmap, practice it through
+a small project, and gradually build the remaining skills.
+
+Focus on practical projects so that you can demonstrate your
+progress through a portfolio.
+
+Your SkillBridge roadmap is designed to help you move from your
+current skill level toward your target career step by step.
+"""
 
     return {
         "career": selected_career["title"],
-        "explanation": explanation
+        "explanation": explanation.strip()
     }
